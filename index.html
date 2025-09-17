@@ -1,122 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>ChatEcho – Voice & Text Agent</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Chat AI Assistant</title>
   <style>
-    body { background-color: #f0f4f8; }
-    .bot { background-color: #e0f2fe; }
-    .user { background-color: #d1fae5; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f0f4f8;
+      padding: 50px;
+    }
+    #chat {
+      width: 80%;
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 15px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: left;
+      min-height: 200px;
+      overflow-y: auto;
+    }
+    .user { color: blue; margin: 5px 0; }
+    .bot { color: green; margin: 5px 0; }
+    button {
+      margin-top: 20px;
+      padding: 12px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background: #45a049; }
   </style>
 </head>
-<body class="flex items-center justify-center min-h-screen">
+<body>
 
-  <div class="bg-white shadow-xl rounded-lg p-6 max-w-xl w-full">
-    <h1 class="text-2xl font-bold text-center mb-4 text-indigo-700">🤖 ChatEcho – Voice & Text Agent</h1>
-    
-    <div id="chat-box" class="space-y-3 h-64 overflow-y-auto border p-4 rounded mb-4 bg-gray-50"
-         role="log" aria-live="polite">
-      <div class="bot p-3 rounded text-gray-800">Hello! I'm your voice agent. Ask me something by voice or text.</div>
-    </div>
-
-    <!-- Input Section -->
-    <div class="flex gap-2">
-      <input id="user-input" type="text" placeholder="Type your message..." 
-             class="flex-1 border border-gray-300 p-3 rounded focus:outline-indigo-500"
-             aria-label="Type your message here" />
-      <button onclick="sendMessage()" 
-              class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded"
-              aria-label="Send message">Send</button>
-      <button onclick="startVoice()" 
-              class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
-              aria-label="Start voice input">🎤</button>
-    </div>
-  </div>
+  <h1>🎙 Voice Chat AI Assistant</h1>
+  <div id="chat"></div>
+  <button id="talk">Start Talking</button>
 
   <script>
-    const chatBox = document.getElementById('chat-box');
-    const userInput = document.getElementById('user-input');
+    const chatBox = document.getElementById("chat");
+    const button = document.getElementById("talk");
 
-    function appendMessage(text, isUser) {
-      const msg = document.createElement('div');
-      msg.textContent = (isUser ? "You: " : "AI: ") + text;
-      msg.className = (isUser ? 'user' : 'bot') + ' p-3 rounded';
-      chatBox.appendChild(msg);
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+
+    function speak(text) {
+      const speech = new SpeechSynthesisUtterance(text);
+      speech.lang = "en-US";
+      window.speechSynthesis.speak(speech);
+    }
+
+    recognition.onresult = function(event) {
+      const userText = event.results[0][0].transcript;
+      addMessage("You: " + userText, "user");
+
+      // 🔹 Here you can replace with an API call to AI backend
+      let botReply = "I heard you say: " + userText;
+
+      addMessage("Assistant: " + botReply, "bot");
+      speak(botReply);
+    };
+
+    recognition.onerror = function(event) {
+      addMessage("Error: " + event.error, "bot");
+    };
+
+    button.addEventListener("click", () => {
+      recognition.start();
+    });
+
+    function addMessage(message, cls) {
+      const p = document.createElement("p");
+      p.textContent = message;
+      p.className = cls;
+      chatBox.appendChild(p);
       chatBox.scrollTop = chatBox.scrollHeight;
     }
-
-    async function sendMessage() {
-      const text = userInput.value.trim();
-      if (!text) return;
-      appendMessage(text, true);
-      userInput.value = '';
-
-      // Simulated AI response
-      const aiReply = await getAIResponse(text);
-      appendMessage(aiReply, false);
-      speak(aiReply);
-    }
-
-    async function getAIResponse(userText) {
-      const replies = {
-        "hello": "Hi there! How can I help you today?",
-        "what's your name": "I'm ChatEcho, your voice assistant.",
-        "how are you": "I'm just some code, but feeling great!",
-      };
-      for (const key in replies) {
-        if (userText.toLowerCase().includes(key)) return replies[key];
-      }
-      return "That's interesting! Tell me more.";
-    }
-
-    // Voice Input
-    function startVoice() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        alert("Your browser doesn't support voice recognition. Try Chrome.");
-        return;
-      }
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'en-US';
-      recognition.interimResults = false;
-
-      recognition.onstart = () => {
-        userInput.placeholder = "Listening...";
-      };
-
-      recognition.onresult = (e) => {
-        const voiceText = e.results[0][0].transcript;
-        userInput.value = voiceText;
-        sendMessage();
-      };
-
-      recognition.onerror = () => {
-        alert("Voice recognition failed. Try again.");
-      };
-
-      recognition.onend = () => {
-        userInput.placeholder = "Type your message...";
-      };
-
-      recognition.start();
-    }
-
-    // AI Voice Reply
-    function speak(text) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      window.speechSynthesis.speak(utterance);
-    }
-
-    // Accessibility: Enter to send, V for voice
-    userInput.addEventListener("keypress", function(e) {
-      if (e.key === "Enter") sendMessage();
-    });
-    document.addEventListener("keydown", function(e) {
-      if (e.key.toLowerCase() === "v") startVoice();
-    });
   </script>
 
 </body>
