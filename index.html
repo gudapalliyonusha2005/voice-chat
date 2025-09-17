@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChatEcho – Voice & Text Agent</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #f0f4f8; }
+    .bot { background-color: #e0f2fe; }
+    .user { background-color: #d1fae5; }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+  <div class="bg-white shadow-xl rounded-lg p-6 max-w-xl w-full">
+    <h1 class="text-2xl font-bold text-center mb-4 text-indigo-700">🤖 ChatEcho – Voice & Text Agent</h1>
+    
+    <div id="chat-box" class="space-y-3 h-64 overflow-y-auto border p-4 rounded mb-4 bg-gray-50">
+      <div class="bot p-3 rounded text-gray-800">Hello! I'm your voice agent. Ask me something by voice or text.</div>
+    </div>
+
+    <!-- Input Section -->
+    <div class="flex gap-2">
+      <input id="user-input" type="text" placeholder="Type your message..." 
+             class="flex-1 border border-gray-300 p-3 rounded focus:outline-indigo-500" />
+      <button onclick="sendMessage()" 
+              class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded">Send</button>
+      <button onclick="startVoice()" 
+              class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">🎤</button>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+
+    function appendMessage(text, isUser) {
+      const msg = document.createElement('div');
+      msg.textContent = (isUser ? "You: " : "AI: ") + text;
+      msg.className = (isUser ? 'user' : 'bot') + ' p-3 rounded';
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+      appendMessage(text, true);
+      userInput.value = '';
+
+      // 🔄 Simulated AI Response (replace with real API if needed)
+      const aiReply = await getAIResponse(text);
+      appendMessage(aiReply, false);
+      speak(aiReply);
+    }
+
+    async function getAIResponse(userText) {
+      // 🧠 Replace this with real API like OpenAI if needed
+      // Simulate different responses
+      const replies = {
+        "hello": "Hi there! How can I help you today?",
+        "what's your name": "I'm ChatEcho, your voice assistant.",
+        "how are you": "I'm just some code, but feeling great!",
+      };
+      for (const key in replies) {
+        if (userText.toLowerCase().includes(key)) return replies[key];
+      }
+      return "That's interesting! Tell me more.";
+    }
+
+    // 🎤 Voice Input
+    function startVoice() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("Your browser doesn't support voice recognition. Try Chrome.");
+        return;
+      }
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        userInput.placeholder = "Listening...";
+      };
+
+      recognition.onresult = (e) => {
+        const voiceText = e.results[0][0].transcript;
+        userInput.value = voiceText;
+        sendMessage();
+      };
+
+      recognition.onerror = () => {
+        alert("Voice recognition failed. Try again.");
+      };
+
+      recognition.onend = () => {
+        userInput.placeholder = "Type your message...";
+      };
+
+      recognition.start();
+    }
+
+    // 🔊 AI Voice Reply
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      window.speechSynthesis.speak(utterance);
+    }
+  </script>
+
+</body>
+</html>
