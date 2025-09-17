@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>ChatEcho – Voice & Text Agent</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background-color: #f0f4f8; }
@@ -17,18 +16,22 @@
   <div class="bg-white shadow-xl rounded-lg p-6 max-w-xl w-full">
     <h1 class="text-2xl font-bold text-center mb-4 text-indigo-700">🤖 ChatEcho – Voice & Text Agent</h1>
     
-    <div id="chat-box" class="space-y-3 h-64 overflow-y-auto border p-4 rounded mb-4 bg-gray-50">
+    <div id="chat-box" class="space-y-3 h-64 overflow-y-auto border p-4 rounded mb-4 bg-gray-50"
+         role="log" aria-live="polite">
       <div class="bot p-3 rounded text-gray-800">Hello! I'm your voice agent. Ask me something by voice or text.</div>
     </div>
 
     <!-- Input Section -->
     <div class="flex gap-2">
       <input id="user-input" type="text" placeholder="Type your message..." 
-             class="flex-1 border border-gray-300 p-3 rounded focus:outline-indigo-500" />
+             class="flex-1 border border-gray-300 p-3 rounded focus:outline-indigo-500"
+             aria-label="Type your message here" />
       <button onclick="sendMessage()" 
-              class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded">Send</button>
+              class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded"
+              aria-label="Send message">Send</button>
       <button onclick="startVoice()" 
-              class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">🎤</button>
+              class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+              aria-label="Start voice input">🎤</button>
     </div>
   </div>
 
@@ -50,15 +53,13 @@
       appendMessage(text, true);
       userInput.value = '';
 
-      // 🔄 Simulated AI Response (replace with real API if needed)
+      // Simulated AI response
       const aiReply = await getAIResponse(text);
       appendMessage(aiReply, false);
       speak(aiReply);
     }
 
     async function getAIResponse(userText) {
-      // 🧠 Replace this with real API like OpenAI if needed
-      // Simulate different responses
       const replies = {
         "hello": "Hi there! How can I help you today?",
         "what's your name": "I'm ChatEcho, your voice assistant.",
@@ -70,7 +71,7 @@
       return "That's interesting! Tell me more.";
     }
 
-    // 🎤 Voice Input
+    // Voice Input
     function startVoice() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
@@ -102,12 +103,20 @@
       recognition.start();
     }
 
-    // 🔊 AI Voice Reply
+    // AI Voice Reply
     function speak(text) {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'en-US';
       window.speechSynthesis.speak(utterance);
     }
+
+    // Accessibility: Enter to send, V for voice
+    userInput.addEventListener("keypress", function(e) {
+      if (e.key === "Enter") sendMessage();
+    });
+    document.addEventListener("keydown", function(e) {
+      if (e.key.toLowerCase() === "v") startVoice();
+    });
   </script>
 
 </body>
