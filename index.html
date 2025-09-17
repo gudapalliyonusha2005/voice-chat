@@ -1,114 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Voice Chat AI Assistant</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #f0f4f8;
-      padding: 50px;
+<script>
+  const chatBox = document.getElementById("chat");
+  const button = document.getElementById("talk");
+  const status = document.getElementById("status");
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+
+  function speak(text) {
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.lang = "en-US";
+    window.speechSynthesis.speak(speech);
+  }
+
+  function addMessage(message, cls) {
+    const p = document.createElement("p");
+    p.textContent = message;
+    p.className = cls;
+    chatBox.appendChild(p);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  recognition.onstart = function () {
+    status.textContent = "🎤 Listening...";
+  };
+
+  recognition.onend = function () {
+    status.textContent = "";
+  };
+
+  recognition.onresult = function(event) {
+    const userText = event.results[0][0].transcript;
+    addMessage("You: " + userText, "user");
+
+    // 🔊 Speak user's own input
+    speak(userText);
+
+    // 🔹 Replace with real AI backend call if needed
+    let botReply = "I heard you say: " + userText;
+
+    addMessage("Assistant: " + botReply, "bot");
+    speak(botReply);
+  };
+
+  recognition.onerror = function(event) {
+    addMessage("Error: " + event.error, "bot");
+    status.textContent = "";
+  };
+
+  button.addEventListener("click", async () => {
+    try {
+      // 🔒 Request permission to use the mic
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      recognition.start();
+    } catch (err) {
+      console.error("Microphone access denied:", err);
+      addMessage("Microphone access denied. Please allow access to use voice features.", "bot");
     }
-    #chat {
-      width: 80%;
-      max-width: 600px;
-      margin: 20px auto;
-      padding: 15px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      text-align: left;
-      min-height: 200px;
-      overflow-y: auto;
-    }
-    .user { color: blue; margin: 5px 0; }
-    .bot { color: green; margin: 5px 0; }
-    button {
-      margin-top: 20px;
-      padding: 12px 25px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background: #4CAF50;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover { background: #45a049; }
-    #status {
-      margin-top: 10px;
-      font-style: italic;
-      color: #888;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>🎙 Voice Chat AI Assistant</h1>
-  <div id="chat"></div>
-  <button id="talk">Start Talking</button>
-  <div id="status"></div>
-
-  <script>
-    const chatBox = document.getElementById("chat");
-    const button = document.getElementById("talk");
-    const status = document.getElementById("status");
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.interimResults = false;
-
-    function speak(text) {
-      const speech = new SpeechSynthesisUtterance(text);
-      speech.lang = "en-US";
-      window.speechSynthesis.speak(speech);
-    }
-
-    function addMessage(message, cls) {
-      const p = document.createElement("p");
-      p.textContent = message;
-      p.className = cls;
-      chatBox.appendChild(p);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    recognition.onstart = function () {
-      status.textContent = "🎤 Listening...";
-    };
-
-    recognition.onend = function () {
-      status.textContent = "";
-    };
-
-    recognition.onresult = function(event) {
-      const userText = event.results[0][0].transcript;
-      addMessage("You: " + userText, "user");
-
-      // 🔹 Replace with real AI backend call if needed
-      let botReply = "I heard you say: " + userText;
-
-      addMessage("Assistant: " + botReply, "bot");
-      speak(botReply);
-    };
-
-    recognition.onerror = function(event) {
-      addMessage("Error: " + event.error, "bot");
-      status.textContent = "";
-    };
-
-    button.addEventListener("click", async () => {
-      try {
-        // 🔒 Request permission to use the mic
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-        recognition.start();
-      } catch (err) {
-        console.error("Microphone access denied:", err);
-        addMessage("Microphone access denied. Please allow access to use voice features.", "bot");
-      }
-    });
-  </script>
-
-</body>
-</html>
+  });
+</script>
