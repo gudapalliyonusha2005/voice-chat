@@ -36,6 +36,11 @@
       cursor: pointer;
     }
     button:hover { background: #45a049; }
+    #status {
+      margin-top: 10px;
+      font-style: italic;
+      color: #888;
+    }
   </style>
 </head>
 <body>
@@ -43,10 +48,12 @@
   <h1>🎙 Voice Chat AI Assistant</h1>
   <div id="chat"></div>
   <button id="talk">Start Talking</button>
+  <div id="status"></div>
 
   <script>
     const chatBox = document.getElementById("chat");
     const button = document.getElementById("talk");
+    const status = document.getElementById("status");
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
@@ -59,11 +66,27 @@
       window.speechSynthesis.speak(speech);
     }
 
+    function addMessage(message, cls) {
+      const p = document.createElement("p");
+      p.textContent = message;
+      p.className = cls;
+      chatBox.appendChild(p);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    recognition.onstart = function () {
+      status.textContent = "🎤 Listening...";
+    };
+
+    recognition.onend = function () {
+      status.textContent = "";
+    };
+
     recognition.onresult = function(event) {
       const userText = event.results[0][0].transcript;
       addMessage("You: " + userText, "user");
 
-      // 🔹 Here you can replace with an API call to AI backend
+      // 🔹 Replace with real AI backend call if needed
       let botReply = "I heard you say: " + userText;
 
       addMessage("Assistant: " + botReply, "bot");
@@ -72,19 +95,19 @@
 
     recognition.onerror = function(event) {
       addMessage("Error: " + event.error, "bot");
+      status.textContent = "";
     };
 
-    button.addEventListener("click", () => {
-      recognition.start();
+    button.addEventListener("click", async () => {
+      try {
+        // 🔒 Request permission to use the mic
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        recognition.start();
+      } catch (err) {
+        console.error("Microphone access denied:", err);
+        addMessage("Microphone access denied. Please allow access to use voice features.", "bot");
+      }
     });
-
-    function addMessage(message, cls) {
-      const p = document.createElement("p");
-      p.textContent = message;
-      p.className = cls;
-      chatBox.appendChild(p);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
   </script>
 
 </body>
